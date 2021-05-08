@@ -1,6 +1,7 @@
 package com.etollpay.authcode.mac;
 
 import com.etollpay.authcode.sm.SmCipherProvider;
+import com.etollpay.authcode.util.ByteHelper;
 import org.coodex.util.Common;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +34,7 @@ public class SmMacCalculator {
         // get segment (use unsigned int)
         ByteBuffer buffer = ByteBuffer.allocate(8);
         buffer.put(new byte[4], 0, 4);
-        byte[] bytes = loopClip(digest, 0, 32, cursor, 4).array();
+        byte[] bytes = ByteHelper.loopClip(digest, 0, 32, cursor, 4).array();
         buffer.put(bytes, 0, 4);
         buffer.flip();
         long segment = buffer.getLong();
@@ -41,20 +42,4 @@ public class SmMacCalculator {
         // get mac
         return (int) (segment % Math.pow(10f, digits));
     }
-
-    private ByteBuffer loopClip(byte[] origin, int offset, int length, int pos, int size) {
-        ByteBuffer buffer = ByteBuffer.allocate(size);
-        if (pos >= offset && pos < offset + length) {
-            for (int i = 0; i < size; i++) {
-                int n = pos + i;
-                while (n >= offset + length) {
-                    n = n - length;
-                }
-                buffer.put(origin[n]);
-            }
-            buffer.flip();
-        }
-        return buffer;
-    }
-
 }

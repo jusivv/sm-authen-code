@@ -1,6 +1,7 @@
 package com.etollpay.authcode.sm.provider;
 
 import com.etollpay.authcode.sm.SmCipherProvider;
+import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.crypto.CryptoException;
 import org.bouncycastle.crypto.Digest;
@@ -28,9 +29,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.util.List;
 
-public class SmBCProvider implements SmCipherProvider {
+public class BcSmProvider implements SmCipherProvider {
 
-    private static Logger log = LoggerFactory.getLogger(SmBCProvider.class);
+    private static Logger log = LoggerFactory.getLogger(BcSmProvider.class);
 
     public static final String ALGORITHM_NAME = "SM4/CTR/NoPadding";
 
@@ -40,7 +41,7 @@ public class SmBCProvider implements SmCipherProvider {
 
     private ECParameterSpec ecParameterSpec;
 
-    public SmBCProvider() {
+    public BcSmProvider() {
         ecParameterSpec = ECNamedCurveTable.getParameterSpec("sm2p256v1");
     }
 
@@ -112,13 +113,23 @@ public class SmBCProvider implements SmCipherProvider {
         return sm2Signer.verifySignature(signature);
     }
 
+    @Override
+    public BigInteger getSignatureR(byte[] asn1Signature) {
+        return getIntFrom(asn1Signature, 0);
+    }
+
+    @Override
+    public BigInteger getSignatureS(byte[] asn1Signature) {
+        return getIntFrom(asn1Signature, 1);
+    }
+
     private ECDomainParameters getDomainParameters() {
         return new ECDomainParameters(ecParameterSpec.getCurve(), ecParameterSpec.getG(), ecParameterSpec.getN(),
                 ecParameterSpec.getH(), ecParameterSpec.getSeed());
     }
 
     private ECPoint asn1PubKeyToPoint(byte[] asn1Input) {
-        List<DERBitString> list = ASN1Filter.get(asn1Input, DERBitString.class);
+        List<DERBitString> list = BcAsn1Filter.get(asn1Input, DERBitString.class);
         if (list.size() == 0) {
             throw new RuntimeException("public key not found.");
         }
@@ -136,6 +147,15 @@ public class SmBCProvider implements SmCipherProvider {
         BigInteger x = new BigInteger(1, buff, offset, 32);
         BigInteger y = new BigInteger(1, buff, offset + 32, 32);
         return ecParameterSpec.getCurve().createPoint(x, y);
+    }
+
+    private BigInteger getIntFrom(byte[] asn1Signature, int index) {
+        List<ASN1Integer> list = BcAsn1Filter.get(asn1Signature, ASN1Integer.class);
+        if (list.size() > index) {
+            return list.get(index).getValue();
+
+        }
+        return null;
     }
 
 }

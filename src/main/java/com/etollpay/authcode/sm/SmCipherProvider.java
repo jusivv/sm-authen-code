@@ -1,5 +1,7 @@
 package com.etollpay.authcode.sm;
 
+import java.math.BigInteger;
+
 /**
  * SM Crypto Provider
  */
@@ -37,4 +39,18 @@ public interface SmCipherProvider {
      * @return
      */
     boolean sm2Verify(byte[] content, byte[] signature, byte[] pubKey, String id);
+
+    /**
+     * get R in signature
+     * @param asn1Signature     signature with ASN.1 encode
+     * @return                  R in bytes
+     */
+    BigInteger getSignatureR(byte[] asn1Signature);
+
+    /**
+     * get S in signature
+     * @param asn1Signature     signature with ASN.1 encode
+     * @return                  S in signature
+     */
+    BigInteger getSignatureS(byte[] asn1Signature);
 }
