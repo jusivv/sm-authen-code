@@ -19,12 +19,13 @@ public class CodeTest {
 
     public static void main(String[] args) throws IOException {
 //        testSign();
-        testReadASN1();
+//        testReadASN1();
 //        testVerify();
+        testMac();
     }
 
     private static void testSign() throws IOException {
-        String serialNo = "10115020120210419";
+        String serialNo = "10115020120210419000001";
         String hexPriKey = "1A75042AC5B609B14A6B3268BE1D2FCD41CC5261B78E69F1CE8F0D971832B1E3";
         String id = "test";
 
@@ -88,6 +89,18 @@ public class CodeTest {
         } catch (IOException e) {
             log.error(e.getLocalizedMessage(), e);
         }
+    }
+
+    private static void testMac() {
+        String secret = "0123456789ABCDEFFEDCBA9876543210";
+        String serialNo = "10115020120210419";
+        SmSigner signer = new SmSigner(new BcSmProvider());
+        int mac = signer.getMac(serialNo.getBytes(StandardCharsets.UTF_8), secret.getBytes(StandardCharsets.UTF_8),
+                6);
+        log.debug("MAC: {}", mac);
+        boolean ok = signer.verifyMac(serialNo.getBytes(StandardCharsets.UTF_8), mac,
+                secret.getBytes(StandardCharsets.UTF_8),6);
+        log.debug("Verify result: {}", ok);
     }
 
 }
